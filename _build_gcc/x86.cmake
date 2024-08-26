@@ -1,0 +1,7 @@
+SET (CMAKE_SYSTEM_NAME Linux)
+SET (CMAKE_SYSTEM_PROCESSOR i686)
+
+FIND_PROGRAM(MY_C_COMPILER i686-linux-gnu-gcc-12 NAMES i686-linux-gnu-gcc-11 i686-linux-gnu-gcc-10 i686-linux-gnu-gcc-9)
+FIND_PROGRAM(MY_CXX_COMPILER i686-linux-gnu-g++-12 NAMES i686-linux-gnu-g++-11 i686-linux-gnu-g++-10 i686-linux-gnu-g++-9)
+SET (CMAKE_C_COMPILER ${MY_C_COMPILER})
+SET (CMAKE_CXX_COMPILER ${MY_CXX_COMPILER})

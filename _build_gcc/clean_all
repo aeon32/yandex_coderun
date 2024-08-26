@@ -1,0 +1,21 @@
+#!/bin/bash
+rm -rf  CMakeFiles
+rm -rf  bin_debug_*
+rm -rf  bin_release_*
+rm -rf  bin_develop_*
+rm -rf bin_relwithdebinfo_*
+rm -rf obj
+rm -f CMakeCache.txt
+rm -f  Makefile
+rm -f  cmake_install.cmake
+rm -f  install_manifest.txt
+rm -f  progress.make
+rm -rf  _CPack_Packages
+rm -f *.cbp
+rm -f  *.rpm
+rm -f  *vcproj*
+rm -f  *sln
+rm -rf *.dir
+rm -f *kdevelop*
+rm -f CPackConfig.cmake
+rm -f CPackSourceConfig.cmake
