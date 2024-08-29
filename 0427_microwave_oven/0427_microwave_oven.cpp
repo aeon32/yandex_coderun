@@ -7,46 +7,57 @@
 #include <sstream>
 #include <iomanip>
 #include <cstdint>
+#include <numeric>
+#include <chrono>
 
-template <int BUTTON_N>
+
+template <std::size_t BUTTON_N>
 class MicrowaveOvenSolver
 {
  public:
-    MicrowaveOvenSolver(unsigned int ia, unsigned int ib, unsigned int ic)
-      :times{ia, ib, ic}, nod(1)
-    {
-        std::sort(times, times+BUTTON_N, std::greater<int>());
-        //calcNod();
 
+    MicrowaveOvenSolver(const std::array<unsigned int, BUTTON_N > values)
+    {
+
+        times = values;
+        std::sort(times.begin(), times.end(), std::greater<int>());
+        calcNod();
+        for (unsigned  int & time : times)
+        {
+            time /= nod;
+        }
     }
+
 
     void calcNod()
     {
-        int nod2 = 1;
-        while ( times[0]%2 == 0 && times[1]%2 == 0 && times[2]%2 == 0)
+        unsigned int nod2 = 1;
+        std::array <unsigned int, BUTTON_N>  aux_times = times;
+
+        while (  std::reduce(aux_times.begin(), aux_times.end(), true,
+                           [](bool res, unsigned  int val) {
+                               return res && val % 2 == 0;
+                           }
+                           ))
         {
             nod2*=2;
-            for (int i=0; i<3; i++)
+            for (int i=0; i< BUTTON_N; i++)
             {
-                times[i]/=2;
+                aux_times[i]/=2;
             }
         }
 
-        int nod1 = 1;
-        for (int i = 3; i <= times[2]; i++)
+        unsigned int nod1 = 1;
+        for (int i = 3; i <= aux_times.back(); i+=2)
         {
-            if (times[0] % i == 0 && times[1]%i == 0 && times[2] %i == 0)
+            if (std::reduce(aux_times.begin(), aux_times.end(), true, [i](bool res, unsigned  int val) {return res && val % i == 0;}))
             {
                 nod1 = i;
             }
         }
-        for (int i=0; i<3; i++)
-        {
-            times[i]/=nod1;
-        }
         nod = nod1 * nod2;
-        std::cout<<"nod "<<nod<<std::endl;
-
+        nok = std::reduce(times.begin(), times.end(), 1ULL, [] (uint64_t res, unsigned  int val) {return res * val;} );
+        nok /= nod;
     }
 
     bool solve(uint64_t N)
@@ -56,6 +67,7 @@ class MicrowaveOvenSolver
 
     uint64_t solve_dynamic_partial(uint64_t N)
     {
+        N = (N + nod - 1) / nod;
         std::vector<bool> dp(N, 0);
         dp.front() = true;
         uint64_t res = 1;
@@ -81,6 +93,7 @@ class MicrowaveOvenSolver
 
     uint64_t solve_dynamic(uint64_t N)
     {
+        N = (N + nod - 1) / nod;
         std::vector<bool> dp0(times[0], 0);
         std::vector<bool> dp1(times[0], 0);
         dp0.front() = true;
@@ -169,30 +182,43 @@ class MicrowaveOvenSolver
         }
 
         return  res;
-
         //return res_period;
     }
 
+    uint64_t solve_advanced(uint64_t N)
+    {
+
+        MicrowaveOvenSolver<2> aux_solver({ times[1], times[2]});
+        uint32_t nok_little = aux_solver.nok;
+
+        return 0;
+    }
+
  private:
-    unsigned int times[BUTTON_N];
-    int nod;
+    std::array<unsigned int, BUTTON_N> times;
+    uint64_t nod;
+    uint64_t nok;
 
 };
 
 
 
+
+
 void microwave1(std::istream & in, std::ostream & out)
 {
-    uint64_t N, A, B, C;
+    uint64_t N;
+    unsigned  int A, B, C;
     in >> N;
     in>>A>>B>>C;
 
 
-    MicrowaveOvenSolver<3> solver(A, B, C);
-    for (uint64_t i = 1; i < 100; i++)
+    MicrowaveOvenSolver<3> solver({A, B, C});
+    for (uint64_t i = 7; i < 1000; i++)
     {
         uint64_t expected = solver.solve_dynamic_partial(i);
         uint64_t real = solver.solve_dynamic(i);
+
         if (expected != real)
             out<<i<<" "<<expected<<" "<<real<<std::endl;
     }
@@ -201,29 +227,60 @@ void microwave1(std::istream & in, std::ostream & out)
 
 void microwave(std::istream & in, std::ostream & out)
 {
-    uint64_t N, A, B, C;
+    uint64_t N;
+    unsigned  int A, B, C;
     in >> N;
     in>>A>>B>>C;
 
 
-    MicrowaveOvenSolver<3> solver(A, B, C);
+    MicrowaveOvenSolver<3> solver({A, B, C});
     uint64_t real = solver.solve_dynamic(N);
     out<<real<<std::endl;
 }
+
 
 void test()
 {
     std::string data =
         R"(100000
-2 3 10)";
+6 10 14)";
 
     std::istringstream in(std::move(data));
     microwave1(in, std::cout);
 }
 
+void test_nod()
+{
+    //{99991, 99989, 99971}
+    auto beg = std::chrono::high_resolution_clock::now();
+
+
+
+    // Taking a timestamp after the code is ran
+
+
+    // Subtracting the end timestamp from the beginning
+    // And we choose to receive the difference in
+    // microseconds
+
+
+    // Displaying the elapsed time
+
+
+    MicrowaveOvenSolver<2> solver({99989, 99971});
+    uint64_t solv = solver.solve_dynamic(99991);
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout<<solv<<std::endl;
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - beg);
+    std::cout << "Elapsed Time: " << duration.count();
+
+}
+
 int main(int argc, char** argv)
 {
-   test();
+   //test();
+   test_nod();
    return 0;
 }
 
